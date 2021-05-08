@@ -35,6 +35,12 @@ class App extends Component {
     return routes
   }
 
+  healthCheckroute() {
+    <Route path="/health">
+        <h3>Hey There!!! The App is Healthy</h3>
+    </Route>
+  }
+
   render() {
     if (this.state.categories.length === 0) {
       return (
@@ -47,6 +53,7 @@ class App extends Component {
               <div>
                 {this.firstRoute()}
                 {this.routeComponent()}
+                {this.healthCheckroute()}
               </div>
             </Router>
         </div>
