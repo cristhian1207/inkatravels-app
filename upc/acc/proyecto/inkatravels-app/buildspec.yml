@@ -1,0 +1,34 @@
+version: 0.2
+
+phases:
+  install: 
+    runtime-versions: 
+      nodejs: 10
+  pre_build:
+    commands:        
+      - echo [Pre-Build] started on `date`
+      - echo [Pre-Build] Logging in to Amazon ECR...
+      - aws --version         
+      - $(aws ecr get-login --no-include-email --region $AWS_REGION)
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7) 
+      - IMAGE_TAG=${COMMIT_HASH:=latest} 
+      - echo [Pre-Build] completed on `date`
+  build:
+    commands:
+      - echo [Build] started on `date`
+      - echo Building the Docker image...
+      - echo $DB_HOST_REPLICA
+      - echo $DB_REPLICA_ACTIVE
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG 
+      - echo [Build] completed on `date`
+  post_build:
+    commands:
+      - echo [Post-Build] started on `date`
+      - echo Pushing the Docker images... 
+      - docker push $REPOSITORY_URI:latest  
+      - docker push $REPOSITORY_URI:$IMAGE_TAG 
+      - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json       
+artifacts:
+  files:
+    - "**/*"
